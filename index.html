@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlackPhoenix ULTIMATE</title>
+<style>
+  body{background:#000;color:#0f0;font-family:'Courier New';margin:0;overflow:hidden;position:relative;}
+  canvas{position:absolute;top:0;left:0;z-index:0;opacity:0.3;}
+  #output{height:calc(100vh-120px);overflow-y:auto;padding:15px;z-index:1;position:relative;}
+  .user{text-align:right;color:#0f0;}
+  .ai{color:#f00;}
+  input,button{width:100%;padding:15px;font-size:18px;}
+  input{background:#111;border:2px solid #0f0;color:#0f0;}
+  button{background:#0f0;color:#000;font-weight:bold;}
+  .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.98);display:flex;align-items:center;justify-content:center;z-index:99;}
+  .btn{margin:10px;padding:15px;background:#0f0;color:#000;border:none;font-weight:bold;}
+  #inp:focus { outline: none; border-color: #f00; }
+</style>
+</head>
+<body onload="document.getElementById('inp').focus();">
+
+<canvas id="matrix"></canvas>
+
+<div id="output">
+  <div class="ai">BlackPhoenix ULTIMATE – GOD MODE<br>Target daal aur launch kar bhai!</div>
+</div>
+
+<input type="text" id="inp" placeholder="target daal bhai..." autofocus>
+<button onclick="send()">LAUNCH ATTACK</button>
+
+<div id="modal" class="modal" style="display:none">
+  <div style="text-align:center;background:#111;padding:30px;border:4px solid #0f0">
+    <h1 style="color:#f00">PERMISSION?</h1>
+    <p>Kya tujhe full permission hai?</p>
+    <button class="btn" onclick="confirmYes()">YES – FULL ATTACK</button>
+    <button class="btn" style="background:#f00;color:#fff" onclick="confirmNo()">NO</button>
+  </div>
+</div>
+
+<script>
+// Matrix Rain
+const canvas = document.getElementById('matrix');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+const cols = Math.floor(canvas.width / 20) + 1;
+const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+let drops = Array(cols).fill(1);
+function draw() {
+  ctx.fillStyle = 'rgba(0,0,0,0.05)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = '#0f0'; ctx.font = '15px monospace';
+  for(let i=0;i<drops.length;i++){
+    const text = chars[Math.floor(Math.random()*chars.length)];
+    ctx.fillText(text, i*20, drops[i]*20);
+    if(drops[i]*20 > canvas.height && Math.random()>0.975) drops[i]=0;
+    drops[i]++;
+  }
+} setInterval(draw, 50);
+
+let target = "";
+function log(t,c="ai"){ const d=document.createElement("div"); d.className=c; d.innerHTML=t; document.getElementById("output").appendChild(d); d.scrollIntoView(); }
+
+function confirmYes(){ document.getElementById("modal").style.display="none"; ultimateAttack(target); }
+function confirmNo(){ document.getElementById("modal").style.display="none"; log("Smart choice bhai!"); }
+
+async function ultimateAttack(t){
+  log(`<br>ULTIMATE ATTACK ON <b>${t}</b><br>`);
+
+  // Subdomains crt.sh
+  try{
+    let sub = await fetch(`https://crt.sh/?q=${t}&output=json`).then(r=>r.json());
+    let subs = [...new Set(sub.map(x=>x.name_value.split('\n')).flat())].slice(0,50).join('<br>');
+    log(`SUBDOMAINS:<br>${subs||'none'}`);
+  }catch(e){log("Subdomains: Error");}
+
+  // DNS IP
+  try{
+    let dns = await fetch(`https://dns.google/resolve?name=${t}`).then(r=>r.json());
+    if(dns.Answer) log(`IP: ${dns.Answer[0].data}`);
+  }catch(e){log("IP: Error");}
+
+  // Tech Stack
+  try{
+    let tech = await fetch(`https://api.wappalyzer.com/v2/lookup/?urls=https://${t}`,{headers:{'x-api-key':'free'}}).then(r=>r.json());
+    if(tech && tech[0]) log(`TECHNOLOGIES: ${tech[0].technologies.map(x=>x.name).join(', ')}`);
+  }catch(e){log("Tech: Error");}
+
+  // Directories
+  const dirs = ["admin","login","wp-admin",".env","robots.txt","sitemap.xml"];
+  let found = [];
+  for(let d of dirs){
+    try{
+      let r = await fetch(`https://\( {t}/ \){d}`,{method:'HEAD'});
+      if(r.ok) found.push(`<a href="https://\( {t}/ \){d}" target="_blank">${d}</a>`);
+    }catch(e){}
+  }
+  if(found.length) log(`FOUND DIRS: ${found.join(' | ')}`);
+
+  log(`<br>RECON COMPLETE!`);
+  log(`<button onclick="downloadReport()" class="btn" style="width:auto;">DOWNLOAD REPORT</button>`);
+}
+
+function downloadReport(){
+  let text = document.getElementById("output").innerText;
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], {type:"text/plain"}));
+  a.download = `BlackPhoenix_Report_\( {target}_ \){Date.now()}.txt`;
+  a.click();
+}
+
+function send(){
+  let msg = document.getElementById("inp").value.trim();
+  if(!msg) return;
+  log(msg,"user");
+  document.getElementById("inp").value = "";
+  if(msg.includes(".")){ target=msg; document.getElementById("modal").style.display="flex"; }
+}
+</script>
+</body>
+</html>
